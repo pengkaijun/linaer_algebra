@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>有理数矩阵逆计算器</title>
+    <style>
+        .container {
+            display: flex;
+            gap: 30px;
+            padding: 20px;
+        }
+        .matrix-panel {
+            border: 1px solid #999;
+            padding: 15px;
+            min-width: 300px;
+        }
+        textarea {
+            width: 300px;
+            height: 150px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        pre {
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        button {
+            padding: 8px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="matrix-panel">
+            <h3>输入矩阵 (支持分数，如 3/5)</h3>
+            <textarea id="input" placeholder="示例：
+1  2  3
+4/3 5 6
+7  8 9/2"></textarea>
+            <button onclick="calculate()">计算逆矩阵</button>
+        </div>
+        
+        <div class="matrix-panel">
+            <h3>逆矩阵 (分数形式)</h3>
+            <pre id="output"></pre>
+            <div id="error" class="error"></div>
+        </div>
+    </div>
+
+<script>
+class Fraction {
+    constructor(numerator, denominator = 1) {
+        const gcd = this.constructor.gcd(Math.abs(numerator), Math.abs(denominator));
+        this.numerator = numerator / gcd;
+        this.denominator = denominator / gcd;
+        
+        if (this.denominator < 0) {
+            this.numerator *= -1;
+            this.denominator *= -1;
+        }
+    }
+
+    static gcd(a, b) {
+        return b === 0 ? a : this.gcd(b, a % b);
+    }
+
+    add(other) {
+        return new Fraction(
+            this.numerator * other.denominator + other.numerator * this.denominator,
+            this.denominator * other.denominator
+        );
+    }
+
+    sub(other) {
+        return this.add(new Fraction(-other.numerator, other.denominator));
+    }
+
+    mul(other) {
+        return new Fraction(
+            this.numerator * other.numerator,
+            this.denominator * other.denominator
+        );
+    }
+
+    div(other) {
+        return this.mul(new Fraction(other.denominator, other.numerator));
+    }
+
+    equals(other) {
+        return this.numerator === other.numerator && this.denominator === other.denominator;
+    }
+
+    toString() {
+        if (this.denominator === 1) return `${this.numerator}`;
+        return `${this.numerator}/${this.denominator}`;
+    }
+}
+
+// 矩阵解析和验证
+function parseMatrix(input) {
+    const rows = input.trim().split('\n');
+    const matrix = [];
+    
+    for (const row of rows) {
+        const elements = row.trim().split(/\s+/).map(str => {
+            const [num, den = 1] = str.split('/').map(Number);
+            return new Fraction(num, den);
+        });
+        matrix.push(elements);
+    }
+
+    const size = matrix.length;
+    if (size === 0) throw new Error('矩阵为空');
+    if (matrix.some(row => row.length !== size)) throw new Error('不是方阵');
+    
+    return matrix;
+}
+
+// 高斯-约旦消元法（有理数版）
+function inverse(matrix) {
+    const n = matrix.length;
+    const aug = matrix.map((row, i) => [
+        ...row,
+        ...Array(n).fill(new Fraction(0)).map((_, j) => 
+            i === j ? new Fraction(1) : new Fraction(0)
+        )
+    ]);
+
+    for (let i = 0; i < n; i++) {
+        // 寻找主元
+        let pivot = i;
+        for (let j = i; j < n; j++) {
+            if (!aug[j][i].equals(new Fraction(0))) {
+                pivot = j;
+                break;
+            }
+        }
+        [aug[i], aug[pivot]] = [aug[pivot], aug[i]];
+
+        // 归一化
+        const divisor = aug[i][i];
+        if (divisor.numerator === 0) throw new Error('矩阵不可逆');
+        
+        for (let j = 0; j < aug[i].length; j++) {
+            aug[i][j] = aug[i][j].div(divisor);
+        }
+
+        // 消元
+        for (let j = 0; j < n; j++) {
+            if (j !== i) {
+                const factor = aug[j][i];
+                for (let k = 0; k < aug[j].length; k++) {
+                    aug[j][k] = aug[j][k].sub(factor.mul(aug[i][k]));
+                }
+            }
+        }
+    }
+
+    return aug.map(row => row.slice(n));
+}
+
+// 格式化输出
+function formatResult(matrix) {
+    const maxLengths = [];
+    for (let col = 0; col < matrix.length; col++) {
+        let maxLen = 0;
+        for (let row = 0; row < matrix.length; row++) {
+            const len = matrix[row][col].toString().length;
+            if (len > maxLen) maxLen = len;
+        }
+        maxLengths[col] = maxLen;
+    }
+
+    return matrix.map(row => 
+        row.map((cell, i) => 
+            cell.toString().padStart(maxLengths[i])
+        ).join('  ')
+    ).join('\n');
+}
+
+function calculate() {
+    const input = document.getElementById('input').value;
+    const output = document.getElementById('output');
+    const error = document.getElementById('error');
+    
+    try {
+        error.textContent = '';
+        const matrix = parseMatrix(input);
+        const inv = inverse(matrix);
+        output.textContent = formatResult(inv);
+    } catch (err) {
+        output.textContent = '';
+        error.textContent = '错误：' + err.message;
+    }
+}
+</script>
+</body>
+</html>
