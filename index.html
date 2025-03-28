@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html>
 <head>
-    <title>ÓĞÀíÊı¾ØÕóÄæ¼ÆËãÆ÷</title>
+    <title>æœ‰ç†æ•°çŸ©é˜µé€†è®¡ç®—å™¨</title>
     <style>
         .container {
             display: flex;
@@ -39,16 +39,16 @@
 <body>
     <div class="container">
         <div class="matrix-panel">
-            <h3>ÊäÈë¾ØÕó (Ö§³Ö·ÖÊı£¬Èç 3/5)</h3>
-            <textarea id="input" placeholder="Ê¾Àı£º
+            <h3>è¾“å…¥çŸ©é˜µ (æ”¯æŒåˆ†æ•°ï¼Œå¦‚ 3/5)</h3>
+            <textarea id="input" placeholder="ç¤ºä¾‹ï¼š
 1  2  3
 4/3 5 6
 7  8 9/2"></textarea>
-            <button onclick="calculate()">¼ÆËãÄæ¾ØÕó</button>
+            <button onclick="calculate()">è®¡ç®—é€†çŸ©é˜µ</button>
         </div>
         
         <div class="matrix-panel">
-            <h3>Äæ¾ØÕó (·ÖÊıĞÎÊ½)</h3>
+            <h3>é€†çŸ©é˜µ (åˆ†æ•°å½¢å¼)</h3>
             <pre id="output"></pre>
             <div id="error" class="error"></div>
         </div>
@@ -103,7 +103,7 @@ class Fraction {
     }
 }
 
-// ¾ØÕó½âÎöºÍÑéÖ¤
+// çŸ©é˜µè§£æå’ŒéªŒè¯
 function parseMatrix(input) {
     const rows = input.trim().split('\n');
     const matrix = [];
@@ -117,13 +117,13 @@ function parseMatrix(input) {
     }
 
     const size = matrix.length;
-    if (size === 0) throw new Error('¾ØÕóÎª¿Õ');
-    if (matrix.some(row => row.length !== size)) throw new Error('²»ÊÇ·½Õó');
+    if (size === 0) throw new Error('çŸ©é˜µä¸ºç©º');
+    if (matrix.some(row => row.length !== size)) throw new Error('ä¸æ˜¯æ–¹é˜µ');
     
     return matrix;
 }
 
-// ¸ßË¹-Ô¼µ©ÏûÔª·¨£¨ÓĞÀíÊı°æ£©
+// é«˜æ–¯-çº¦æ—¦æ¶ˆå…ƒæ³•ï¼ˆæœ‰ç†æ•°ç‰ˆï¼‰
 function inverse(matrix) {
     const n = matrix.length;
     const aug = matrix.map((row, i) => [
@@ -134,7 +134,7 @@ function inverse(matrix) {
     ]);
 
     for (let i = 0; i < n; i++) {
-        // Ñ°ÕÒÖ÷Ôª
+        // å¯»æ‰¾ä¸»å…ƒ
         let pivot = i;
         for (let j = i; j < n; j++) {
             if (!aug[j][i].equals(new Fraction(0))) {
@@ -144,15 +144,15 @@ function inverse(matrix) {
         }
         [aug[i], aug[pivot]] = [aug[pivot], aug[i]];
 
-        // ¹éÒ»»¯
+        // å½’ä¸€åŒ–
         const divisor = aug[i][i];
-        if (divisor.numerator === 0) throw new Error('¾ØÕó²»¿ÉÄæ');
+        if (divisor.numerator === 0) throw new Error('çŸ©é˜µä¸å¯é€†');
         
         for (let j = 0; j < aug[i].length; j++) {
             aug[i][j] = aug[i][j].div(divisor);
         }
 
-        // ÏûÔª
+        // æ¶ˆå…ƒ
         for (let j = 0; j < n; j++) {
             if (j !== i) {
                 const factor = aug[j][i];
@@ -166,7 +166,7 @@ function inverse(matrix) {
     return aug.map(row => row.slice(n));
 }
 
-// ¸ñÊ½»¯Êä³ö
+// æ ¼å¼åŒ–è¾“å‡º
 function formatResult(matrix) {
     const maxLengths = [];
     for (let col = 0; col < matrix.length; col++) {
@@ -197,7 +197,7 @@ function calculate() {
         output.textContent = formatResult(inv);
     } catch (err) {
         output.textContent = '';
-        error.textContent = '´íÎó£º' + err.message;
+        error.textContent = 'é”™è¯¯ï¼š' + err.message;
     }
 }
 </script>
